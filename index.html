@@ -400,121 +400,130 @@
             text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         }
 
-        .wind-platform { 
-            position: absolute; 
-            width: 80px; 
+        .wind-platform {
+            position: absolute;
+            width: 80px;
             height: 120px;
-            bottom: 25vh; 
-            z-index: 1; 
+            bottom: 25vh;
+            z-index: 1;
             pointer-events: none;
-            left: 50%; /* Posisi horizontal di tengah */
-            transform: translateX(-25%); /* Pusat horizontal sempurna */
-        } 
+            left: 50%;
+            /* Posisi horizontal di tengah */
+            transform: translateX(-25%);
+            /* Pusat horizontal sempurna */
+        }
 
-        .wind-particle { 
-            position: absolute; 
+        .wind-particle {
+            position: absolute;
             width: 4px;
             height: 15px;
             background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 50%; 
-            animation: windFloat 2s infinite linear; 
+            border-radius: 50%;
+            animation: windFloat 2s infinite linear;
             box-shadow: 0 0 5px 2px rgba(255, 255, 255, 0.5);
-        } 
+        }
 
-        /* Additional larger particles for variation */ 
-        .wind-particle.large { 
-            width: 6px; 
-            height: 24px; 
-            animation-duration: 2.5s; 
-        } 
+        /* Additional larger particles for variation */
+        .wind-particle.large {
+            width: 6px;
+            height: 24px;
+            animation-duration: 2.5s;
+        }
 
-        /* Additional swirl particles */ 
-        .wind-particle.swirl { 
-            width: 5px; 
-            height: 5px; 
-            border-radius: 50%; 
-            animation: windSwirl 3s infinite linear; 
-        } 
+        /* Additional swirl particles */
+        .wind-particle.swirl {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            animation: windSwirl 3s infinite linear;
+        }
 
-        @keyframes windFloat { 
-            0% { 
-                transform: translateY(80px) translateX(0) rotate(0deg); 
-                opacity: 0; 
-            } 
-            10% { 
-                opacity: 0.9; 
-            } 
-            100% { 
-                transform: translateY(-80px) translateX(20px) rotate(15deg); 
-                opacity: 0; 
-            } 
-        } 
+        @keyframes windFloat {
+            0% {
+                transform: translateY(80px) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
 
-        @keyframes windSwirl { 
-            0% { 
-                transform: translateY(70px) translateX(0) scale(0.2); 
-                opacity: 0; 
-            } 
-            20% { 
-                opacity: 0.8; 
-                transform: translateY(40px) translateX(10px) scale(0.6); 
-            } 
-            40% { 
-                transform: translateY(20px) translateX(-5px) scale(0.8); 
-            } 
-            60% { 
-                transform: translateY(0px) translateX(15px) scale(1); 
-            } 
-            80% { 
-                transform: translateY(-20px) translateX(-5px) scale(0.8); 
-            } 
-            100% { 
-                transform: translateY(-60px) translateX(10px) scale(0.2); 
-                opacity: 0; 
-            } 
-        } 
+            10% {
+                opacity: 0.9;
+            }
 
-        /* Active wind area visual indicator */ 
-        .wind-area { 
-            position: absolute; 
-            width: 80px; 
-            height: 120px; 
-            background: linear-gradient(
-                to top, 
-                rgba(255, 255, 255, 0.15), 
-                rgba(255, 255, 255, 0.25) 40%, 
-                rgba(255, 255, 255, 0.1)
-            ); 
-            border-radius: 50% 50% 0 0; 
-            opacity: 0; 
-            animation: windAreaPulse 2s infinite alternate; 
-            pointer-events: none; 
-        } 
+            100% {
+                transform: translateY(-80px) translateX(20px) rotate(15deg);
+                opacity: 0;
+            }
+        }
 
-        @keyframes windAreaPulse { 
-            0% { 
-                opacity: 0.1; 
-                height: 110px; 
-            } 
-            100% { 
-                opacity: 0.25; 
-                height: 130px; 
-            } 
-        } 
+        @keyframes windSwirl {
+            0% {
+                transform: translateY(70px) translateX(0) scale(0.2);
+                opacity: 0;
+            }
 
-        /* Rock styling with active wind effect */ 
-        .rock.wind-active { 
-            box-shadow: 0 0 12px 4px rgba(255, 255, 255, 0.6); 
-            animation: glowPulse 1.5s infinite alternate; 
-        } 
+            20% {
+                opacity: 0.8;
+                transform: translateY(40px) translateX(10px) scale(0.6);
+            }
 
-        @keyframes glowPulse { 
-            0% { 
-                box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.4); 
-            } 
-            100% { 
-                box-shadow: 0 0 16px 6px rgba(255, 255, 255, 0.8); 
-            } 
+            40% {
+                transform: translateY(20px) translateX(-5px) scale(0.8);
+            }
+
+            60% {
+                transform: translateY(0px) translateX(15px) scale(1);
+            }
+
+            80% {
+                transform: translateY(-20px) translateX(-5px) scale(0.8);
+            }
+
+            100% {
+                transform: translateY(-60px) translateX(10px) scale(0.2);
+                opacity: 0;
+            }
+        }
+
+        /* Active wind area visual indicator */
+        .wind-area {
+            position: absolute;
+            width: 80px;
+            height: 120px;
+            background: linear-gradient(to top,
+                    rgba(255, 255, 255, 0.15),
+                    rgba(255, 255, 255, 0.25) 40%,
+                    rgba(255, 255, 255, 0.1));
+            border-radius: 50% 50% 0 0;
+            opacity: 0;
+            animation: windAreaPulse 2s infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes windAreaPulse {
+            0% {
+                opacity: 0.1;
+                height: 110px;
+            }
+
+            100% {
+                opacity: 0.25;
+                height: 130px;
+            }
+        }
+
+        /* Rock styling with active wind effect */
+        .rock.wind-active {
+            box-shadow: 0 0 12px 4px rgba(255, 255, 255, 0.6);
+            animation: glowPulse 1.5s infinite alternate;
+        }
+
+        @keyframes glowPulse {
+            0% {
+                box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.4);
+            }
+
+            100% {
+                box-shadow: 0 0 16px 6px rgba(255, 255, 255, 0.8);
+            }
         }
 
         /* Rock styling update - platform lebih lebar dan di tengah */
@@ -528,7 +537,8 @@
             border-radius: 4px 4px 0 0;
             z-index: 2;
             left: 50%;
-            transform: translateX(-25%); /* Pusat sempurna */
+            transform: translateX(-25%);
+            /* Pusat sempurna */
         }
 
         .rock::before {
@@ -552,6 +562,29 @@
             z-index: 1;
             left: 50%;
             transform: translate(-25%, 0);
+        }
+
+        .flower {
+            position: absolute;
+            transition: all 0.5s ease;
+        }
+        .flower.wilted {
+            filter: brightness(0.7) saturate(0.5);
+        }
+        .flower.partial {
+            filter: brightness(0.85) saturate(0.75);
+        }
+        .flower.bloomed {
+            filter: brightness(1) saturate(1);
+            animation: gentle-sway 3s ease-in-out infinite alternate;
+        }
+        .bloom-particle {
+            opacity: 1;
+            box-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
+        }
+        @keyframes gentle-sway {
+            0% { transform: rotate(-2deg); }
+            100% { transform: rotate(2deg); }
         }
     </style>
 </head>
@@ -675,8 +708,7 @@
                 }
             }
 
-            fly() {
-            }
+            fly() {}
 
             update() {
                 if (this.state === 'egg') {
@@ -823,7 +855,7 @@
                         const particleCount = 20; // Increased particle count
                         for (let i = 0; i < particleCount; i++) {
                             const particle = document.createElement('div');
-                            
+
                             // Determine type of particle for variety
                             if (i % 5 === 0) {
                                 particle.className = 'wind-particle large';
@@ -832,13 +864,13 @@
                             } else {
                                 particle.className = 'wind-particle';
                             }
-                            
+
                             // Randomly position particles horizontally within the platform
                             particle.style.left = `${Math.random() * 80}px`;
-                            
+
                             // Stagger the animation
                             particle.style.animationDelay = `${Math.random() * 3}s`;
-                            
+
                             windPlatform.appendChild(particle);
                         }
 
@@ -894,7 +926,7 @@
                     const platform = document.createElement('div');
                     platform.className = 'platform';
                     platform.style.left = `${x}px`;
-                    platform.style.bottom = '53vh';  // Platform lebih tinggi dari tanah
+                    platform.style.bottom = '53vh'; // Platform lebih tinggi dari tanah
                     this.worldElement.appendChild(platform);
 
                     const rock = document.createElement('div');
@@ -936,8 +968,34 @@
                     cloud.style.left = `${x}px`;
                     cloud.style.bottom = `${45 + (i * 15)}vh`; // Awan pada ketinggian berbeda
                     this.worldElement.appendChild(cloud);
-                    
+
                     // We don't add these to obstacles array since they're just decorative
+                });
+
+                // Tambahkan bunga di area kupu-kupu (Level 5)
+                [5800, 6200].forEach((x, i) => {
+                    const flower = document.createElement('div');
+                    flower.className = 'flower wilted'; // Mulai dengan bunga layu
+                    flower.style.left = `${x}px`;
+                    flower.style.bottom = '25vh'; // Posisi di tanah
+                    flower.style.backgroundImage = "url('{{ asset('img/game2d/Pohon_1.png') }}')";
+                    const scaleFactor = 1.5; 
+                    flower.style.width = `${64 * scaleFactor}px`;
+                    flower.style.height = `${96 * scaleFactor}px`;
+                    flower.style.position = 'absolute';
+                    flower.style.backgroundSize = 'contain';
+                    flower.style.backgroundRepeat = 'no-repeat';
+                    flower.style.transition = 'background-image 0.5s ease-in-out';
+                    
+                    this.worldElement.appendChild(flower);
+                    this.obstacles.push({
+                        element: flower,
+                        x,
+                        type: 'flower',
+                        level: 5,
+                        state: 'wilted', // Kondisi awal
+                        id: `flower-${i}`
+                    });
                 });
             }
 
@@ -1170,6 +1228,28 @@
                             this.movementSpeed = 1;
                         }
                     }
+                    // Logika khusus untuk bunga
+                    else if (obstacle.type === 'flower') {
+                        // Hitung jarak antara karakter dan bunga
+                        const distance = Math.abs(characterRect.left - obstacle.x);
+                        
+                        // Ubah keadaan bunga berdasarkan jarak
+                        if (distance < 300 && obstacle.state === 'wilted') {
+                            // Bunga mulai mekar (stage pertama)
+                            obstacle.state = 'partial';
+                            obstacle.element.style.backgroundImage = "url('{{ asset('img/game2d/Pohon_2.png') }}')";
+                            obstacle.element.className = 'flower partial';
+                        } 
+                        else if (distance < 150 && obstacle.state === 'partial') {
+                            // Bunga mekar penuh
+                            obstacle.state = 'bloomed';
+                            obstacle.element.style.backgroundImage = "url('{{ asset('img/game2d/Pohon_3.png') }}')";
+                            obstacle.element.className = 'flower bloomed';
+                            
+                            // Efek visual saat bunga mekar sepenuhnya
+                            this.createBloomEffect(obstacle);
+                        }
+                    }
                     // Removed cloud collision logic since clouds are now just background
                 });
 
@@ -1195,6 +1275,57 @@
                     rect1.top < rect2.bottom &&
                     rect1.bottom > rect2.top
                 );
+            }
+            
+            createBloomEffect(flower) {
+                // Buat container untuk partikel
+                const particleContainer = document.createElement('div');
+                particleContainer.className = 'bloom-particles';
+                particleContainer.style.position = 'absolute';
+                particleContainer.style.left = `${flower.x}px`;
+                particleContainer.style.bottom = '25vh';
+                particleContainer.style.width = '64px';
+                particleContainer.style.height = '96px';
+                particleContainer.style.pointerEvents = 'none';
+                
+                // Buat beberapa partikel untuk efek mekar
+                for (let i = 0; i < 8; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'bloom-particle';
+                    particle.style.position = 'absolute';
+                    particle.style.width = '8px';
+                    particle.style.height = '8px';
+                    particle.style.backgroundColor = '#FFD700'; // Warna kuning cerah
+                    particle.style.borderRadius = '50%';
+                    
+                    // Posisi awal acak di sekitar bunga
+                    const randomX = 20 + Math.random() * 24; // Dalam jangkauan bunga (64px)
+                    const randomY = 40 + Math.random() * 56; // Dalam jangkauan bunga (96px)
+                    particle.style.left = `${randomX}px`;
+                    particle.style.bottom = `${randomY}px`;
+                    
+                    // Animasi dengan GSAP
+                    gsap.to(particle, {
+                        x: (Math.random() - 0.5) * 50,
+                        y: (Math.random() - 0.5) * 50,
+                        opacity: 0,
+                        duration: 1 + Math.random(),
+                        onComplete: () => {
+                            if (particleContainer.parentNode) {
+                                particleContainer.removeChild(particle);
+                                
+                                // Hapus container jika tidak ada partikel yang tersisa
+                                if (particleContainer.children.length === 0) {
+                                    particleContainer.parentNode.removeChild(particleContainer);
+                                }
+                            }
+                        }
+                    });
+                    
+                    particleContainer.appendChild(particle);
+                }
+                
+                this.worldElement.appendChild(particleContainer);
             }
 
             showDamageEffect() {
@@ -1410,6 +1541,15 @@
                     'small-butterfly': false,
                     butterfly: false
                 };
+
+                // Reset flowers to wilted state
+                this.obstacles.forEach(obstacle => {
+                    if (obstacle.type === 'flower') {
+                        obstacle.state = 'wilted';
+                        obstacle.element.className = 'flower wilted';
+                        obstacle.element.style.backgroundImage = "url('{{ asset('img/game2d/Pohon_1.png') }}')";
+                    }
+                });
 
                 // Reset answered questions
                 this.answeredQuestions.clear();
