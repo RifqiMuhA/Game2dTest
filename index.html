@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Metamorfosis Kupu-kupu</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            image-rendering: pixelated;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #333;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(#87CEEB, #E0F6FF);
+        }
+
+        #character {
+            position: absolute;
+            width: 96px;
+            height: 96px;
+            bottom: calc(25vh - 16px);
+            left: 100px;
+            z-index: 2;
+            transform-origin: center;
+            transition: left 0.1s ease-out;
+        }
+
+        .sprite {
+            width: 100%;
+            height: 100%;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+
+        .egg .sprite {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><ellipse cx="16" cy="20" rx="8" ry="10" fill="%23FFF"/><path d="M12 12 C16 8 20 12 20 12" stroke="%2390EE90" fill="none" stroke-width="2"/></svg>');
+        }
+
+        .small-caterpillar .sprite {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="8" y="28" width="16" height="4" fill="%238BC34A"/><circle cx="24" cy="30" r="2" fill="%238BC34A"/><circle cx="8" cy="30" r="2" fill="%238BC34A"/></svg>');
+            animation: crawl 0.6s steps(2) infinite;
+        }
+
+        .large-caterpillar .sprite {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="4" y="24" width="24" height="8" fill="%238BC34A"/><circle cx="28" cy="28" r="4" fill="%23FF9800"/><circle cx="4" cy="28" r="4" fill="%23FF9800"/><rect x="8" y="22" width="4" height="2" fill="%23FF5722"/><rect x="20" y="22" width="4" height="2" fill="%23FF5722"/></svg>');
+            animation: crawl 0.6s steps(2) infinite;
+        }
+
+        .cloud {
+            position: absolute;
+            width: 128px;
+            height: 64px;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 32"><path d="M8 20 Q8 12 16 12 Q20 4 28 8 Q32 4 40 8 Q48 4 52 12 Q60 12 60 20 Q60 28 52 28 L12 28 Q8 28 8 20 Z" fill="white"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .pupa .sprite {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M8 20 L24 20 L24 32 L8 32 Z" fill="%23795548"/><path d="M12 20 L20 20 L20 32 L12 32" fill="%23A1887F"/></svg>');
+        }
+
+        .small-butterfly .sprite {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16 16 L24 28 L16 32 L8 28 Z" fill="%23FF9800"/></svg>');
+            animation: flutter 0.5s infinite alternate;
+        }
+
+        .butterfly .sprite {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16 4 L28 16 L16 28 L4 16 Z" fill="%23FF9800"/><path d="M14 14 L18 14 L18 18 L14 18 Z" fill="%23FF5722"/><path d="M8 8 L12 12" stroke="%23FFF" stroke-width="2"/><path d="M20 8 L24 12" stroke="%23FFF" stroke-width="2"/></svg>');
+            animation: flutter 0.5s infinite alternate;
+        }
+
+        #damageEffect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+        }
+
+        #damageEffect::before,
+        #damageEffect::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 25vw;
+            /* Slightly wider for better gradient */
+            background: linear-gradient(to right, rgba(255, 0, 0, 0.4), rgba(255, 0, 0, 0));
+        }
+
+        #damageEffect::before {
+            left: 0;
+        }
+
+        #damageEffect::after {
+            right: 0;
+            transform: scaleX(-1);
+            /* Flip the gradient for right side */
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+        }
+
+        @keyframes shake {
+
+            10%,
+            90% {
+                transform: translate3d(-1px, 0, 0);
+            }
+
+            20%,
+            80% {
+                transform: translate3d(2px, 0, 0);
+            }
+
+            30%,
+            50%,
+            70% {
+                transform: translate3d(-4px, 0, 0);
+            }
+
+            40%,
+            60% {
+                transform: translate3d(4px, 0, 0);
+            }
+        }
+
+        /* Rest of the styles remain the same */
+        @keyframes crawl {
+            0% {
+                transform: scaleX(0.8);
+            }
+
+            100% {
+                transform: scaleX(1.2);
+            }
+        }
+
+        @keyframes flutter {
+            0% {
+                transform: rotate(-5deg);
+            }
+
+            100% {
+                transform: rotate(5deg);
+            }
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .bounce {
+            animation: bounce 0.5s ease-in-out;
+        }
+
+        #gameWorld {
+            position: absolute;
+            width: 6400px;
+            height: 100%;
+            left: 0;
+        }
+
+        .bush {
+            position: absolute;
+            width: 128px;
+            height: 128px;
+            bottom: calc(25vh - 16px);
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M4 28 Q16 4 28 28 Z" fill="%232E7D32"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        #ground {
+            position: absolute;
+            bottom: 0;
+            width: 8000px;
+            height: 25vh;
+            background: #8B4513;
+        }
+
+        #questionBox {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            display: none;
+            text-align: center;
+            z-index: 3;
+            border: 4px solid #4CAF50;
+            image-rendering: auto;
+        }
+
+        .question-image {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .option {
+            margin: 10px;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 16px;
+        }
+
+        .option:hover {
+            background: #45a049;
+        }
+
+        #gameStatus {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 2;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        #lives {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 2;
+            display: flex;
+            gap: 5px;
+        }
+
+        .heart {
+            width: 24px;
+            height: 24px;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16 28 L4 16 Q0 12 4 8 Q8 4 12 8 L16 12 L20 8 Q24 4 28 8 Q32 12 28 16 Z" fill="red"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 4;
+        }
+
+        #restartButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 30vh;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 2;
+            font-size: 18px;
+            width: 300px;
+        }
+
+        .control-keys {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .arrow-key {
+            width: 50px;
+            height: 50px;
+            background: #4CAF50;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        #victoryScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            z-index: 5;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        #victoryContent {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        #victoryButterfly {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            animation: victoryFlutter 4s infinite linear;
+        }
+
+        @keyframes victoryFlutter {
+            0% {
+                transform: rotate(0deg) translateX(100px) rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg) translateX(100px) rotate(-360deg);
+            }
+        }
+
+        .victory-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 30px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.3s;
+        }
+
+        .victory-button:hover {
+            background: #45a049;
+        }
+
+        #victoryTitle {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: gold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .wind-platform { 
+            position: absolute; 
+            width: 80px; 
+            height: 120px;
+            bottom: 25vh; 
+            z-index: 1; 
+            pointer-events: none;
+            left: 50%; /* Posisi horizontal di tengah */
+            transform: translateX(-25%); /* Pusat horizontal sempurna */
+        } 
+
+        .wind-particle { 
+            position: absolute; 
+            width: 4px;
+            height: 15px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%; 
+            animation: windFloat 2s infinite linear; 
+            box-shadow: 0 0 5px 2px rgba(255, 255, 255, 0.5);
+        } 
+
+        /* Additional larger particles for variation */ 
+        .wind-particle.large { 
+            width: 6px; 
+            height: 24px; 
+            animation-duration: 2.5s; 
+        } 
+
+        /* Additional swirl particles */ 
+        .wind-particle.swirl { 
+            width: 5px; 
+            height: 5px; 
+            border-radius: 50%; 
+            animation: windSwirl 3s infinite linear; 
+        } 
+
+        @keyframes windFloat { 
+            0% { 
+                transform: translateY(80px) translateX(0) rotate(0deg); 
+                opacity: 0; 
+            } 
+            10% { 
+                opacity: 0.9; 
+            } 
+            100% { 
+                transform: translateY(-80px) translateX(20px) rotate(15deg); 
+                opacity: 0; 
+            } 
+        } 
+
+        @keyframes windSwirl { 
+            0% { 
+                transform: translateY(70px) translateX(0) scale(0.2); 
+                opacity: 0; 
+            } 
+            20% { 
+                opacity: 0.8; 
+                transform: translateY(40px) translateX(10px) scale(0.6); 
+            } 
+            40% { 
+                transform: translateY(20px) translateX(-5px) scale(0.8); 
+            } 
+            60% { 
+                transform: translateY(0px) translateX(15px) scale(1); 
+            } 
+            80% { 
+                transform: translateY(-20px) translateX(-5px) scale(0.8); 
+            } 
+            100% { 
+                transform: translateY(-60px) translateX(10px) scale(0.2); 
+                opacity: 0; 
+            } 
+        } 
+
+        /* Active wind area visual indicator */ 
+        .wind-area { 
+            position: absolute; 
+            width: 80px; 
+            height: 120px; 
+            background: linear-gradient(
+                to top, 
+                rgba(255, 255, 255, 0.15), 
+                rgba(255, 255, 255, 0.25) 40%, 
+                rgba(255, 255, 255, 0.1)
+            ); 
+            border-radius: 50% 50% 0 0; 
+            opacity: 0; 
+            animation: windAreaPulse 2s infinite alternate; 
+            pointer-events: none; 
+        } 
+
+        @keyframes windAreaPulse { 
+            0% { 
+                opacity: 0.1; 
+                height: 110px; 
+            } 
+            100% { 
+                opacity: 0.25; 
+                height: 130px; 
+            } 
+        } 
+
+        /* Rock styling with active wind effect */ 
+        .rock.wind-active { 
+            box-shadow: 0 0 12px 4px rgba(255, 255, 255, 0.6); 
+            animation: glowPulse 1.5s infinite alternate; 
+        } 
+
+        @keyframes glowPulse { 
+            0% { 
+                box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.4); 
+            } 
+            100% { 
+                box-shadow: 0 0 16px 6px rgba(255, 255, 255, 0.8); 
+            } 
+        }
+
+        /* Rock styling update - platform lebih lebar dan di tengah */
+        .rock {
+            position: absolute;
+            width: 100px;
+            height: 32px;
+            bottom: 25vh;
+            background-color: #777;
+            border-bottom: 5px solid #555;
+            border-radius: 4px 4px 0 0;
+            z-index: 2;
+            left: 50%;
+            transform: translateX(-25%); /* Pusat sempurna */
+        }
+
+        .rock::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #999;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .platform {
+            position: absolute;
+            width: 128px;
+            height: 32px;
+            background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 16%22%3E %3Crect width=%2264%22 height=%2216%22 fill=%22%236B4D2F%22/%3E %3Crect y=%220%22 width=%2264%22 height=%223%22 fill=%22%23836248%22/%3E %3Crect y=%2213%22 width=%2264%22 height=%223%22 fill=%22%234A321D%22/%3E %3Cpath d=%22M0,3 L64,3 L60,6 L4,6 Z%22 fill=%22%238F6A3B%22/%3E %3Cpath d=%22M4,6 L60,6 L56,9 L8,9 Z%22 fill=%22%237A5A32%22/%3E %3Cpath d=%22M8,9 L56,9 L52,12 L12,12 Z%22 fill=%22%23634B29%22/%3E %3Crect x=%228%22 y=%225%22 width=%222%22 height=%222%22 fill=%22%238B6939%22/%3E %3Crect x=%224%22 y=%227%22 width=%221%22 height=%221%22 fill=%22%23785633%22/%3E %3Crect x=%2256%22 y=%225%22 width=%222%22 height=%222%22 fill=%22%238B6939%22/%3E %3Crect x=%2260%22 y=%227%22 width=%221%22 height=%221%22 fill=%22%23785633%22/%3E %3C/svg%3E');
+            background-size: contain;
+            background-repeat: repeat-x;
+            z-index: 1;
+            left: 50%;
+            transform: translate(-25%, 0);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="gameContainer">
+        <div id="gameStatus">Level: <span id="level">1</span></div>
+        <div id="lives"></div>
+        <div id="gameWorld">
+            <div id="character" class="egg">
+                <div class="sprite"></div>
+            </div>
+            <div id="ground"></div>
+        </div>
+        <div id="controls">
+            <div id="controlText">Gunakan tombol panah kanan (→) untuk bergerak</div>
+            <div class="control-keys" id="controlKeys">
+                <div class="arrow-key">→</div>
+            </div>
+        </div>
+        <div id="questionBox">
+            <h3 id="question"></h3>
+            <div id="options"></div>
+        </div>
+        <div id="gameOver">
+            <h2>Game Over</h2>
+            <p>Nyawa Anda habis!</p>
+            <button id="restartButton">Main Lagi</button>
+        </div>
+    </div>
+
+    <div id="damageEffect"></div>
+
+    <div id="windEffects"></div>
+
+    <div id="victoryScreen">
+        <div id="victoryContent">
+            <div id="victoryButterfly">
+                <div class="sprite butterfly"></div>
+            </div>
+            <h1 id="victoryTitle">Selamat!</h1>
+            <p style="font-size: 24px; margin-bottom: 30px;">Kamu telah menyelesaikan metamorfosis!</p>
+            <button class="victory-button" id="playAgainButton">Main Lagi</button>
+            <a href="#" class="victory-button">Keluar</a>
+        </div>
+    </div>
+
+    <script>
+        class Character {
+            constructor() {
+                this.element = document.getElementById('character');
+                this.sprite = this.element.querySelector('.sprite');
+                this.state = 'egg';
+                this.isMoving = false;
+                this.xPosition = 100;
+                this.yPosition = 100;
+                this.jumpForce = 0;
+                this.gravity = 0.2;
+                this.canJump = false;
+                this.jumpHeight = 4;
+                this.velocity = 0;
+                this.isFalling = true;
+                this.hasLanded = false;
+                this.fixedButterflyHeight = 30; // Fixed height for butterfly
+                this.isFlying = false;
+                this.groundLevel = 25;
+                this.currentPlatform = null;
+            }
+
+            startMoving() {
+                this.isMoving = true;
+                if (this.state === 'egg' && !this.hasLanded) {
+                    this.isFalling = true;
+                    this.velocity = 0; // Reset velocity saat mulai jatuh
+                }
+            }
+
+            stopMoving() {
+                this.isMoving = false;
+            }
+
+            evolve() {
+                switch (this.state) {
+                    case 'egg':
+                        this.state = 'small-caterpillar';
+                        this.element.className = 'small-caterpillar';
+                        break;
+                    case 'small-caterpillar':
+                        this.state = 'large-caterpillar';
+                        this.element.className = 'large-caterpillar';
+                        break;
+                    case 'large-caterpillar':
+                        this.state = 'pupa';
+                        this.element.className = 'pupa';
+                        break;
+                    case 'pupa':
+                        this.state = 'small-butterfly';
+                        this.element.className = 'small-butterfly';
+                        break;
+                    case 'small-butterfly':
+                        this.state = 'butterfly';
+                        this.element.className = 'butterfly';
+                        break;
+                }
+            }
+
+            updatePosition(worldPosition) {
+                this.xPosition = -worldPosition + 100;
+                this.element.style.left = `${this.xPosition}px`;
+                this.element.style.bottom = `${this.yPosition}vh`;
+            }
+
+            jump() {
+                if (this.canJump &&
+                    (this.state === 'small-caterpillar' || this.state === 'large-caterpillar') &&
+                    this.yPosition <= 25.5) {
+                    this.velocity = this.jumpHeight;
+                    this.canJump = false;
+                    this.isJumping = true;
+                    this.currentPlatform = null;
+                }
+            }
+
+            fly() {
+            }
+
+            update() {
+                if (this.state === 'egg') {
+                    if (this.isFalling) {
+                        this.velocity -= this.gravity;
+                        this.yPosition += this.velocity;
+
+                        if (this.yPosition <= 25) {
+                            this.yPosition = 25;
+                            this.velocity = 0;
+                            this.hasLanded = true;
+                            this.isFalling = false;
+
+                            this.element.classList.add('bounce');
+                            setTimeout(() => {
+                                this.element.classList.remove('bounce');
+                            }, 500);
+                        }
+                    }
+                } else if (this.state === 'small-caterpillar' || this.state === 'large-caterpillar') {
+                    // Update gravity for caterpillar with platform check
+                    this.velocity -= 0.2;
+                    this.yPosition += this.velocity;
+
+                    // Check for ground collision or platform collision
+                    const minHeight = this.currentPlatform ?
+                        this.currentPlatform.top :
+                        this.groundLevel;
+
+                    if (this.yPosition <= minHeight) {
+                        this.yPosition = minHeight;
+                        this.velocity = 0;
+                        this.canJump = true;
+                        this.isJumping = false;
+                    } else {
+                        this.isJumping = true;
+                    }
+                } else if (this.state === 'small-butterfly' || this.state === 'butterfly') {
+                    // Set butterfly to fixed height - no more up/down movement
+                    this.yPosition = this.fixedButterflyHeight;
+                }
+
+                this.element.style.bottom = `${this.yPosition}vh`;
+            }
+        }
+
+        class Game {
+            constructor() {
+                this.character = new Character();
+                this.level = 1;
+                this.lives = 3;
+                this.worldElement = document.getElementById('gameWorld');
+                this.worldPosition = 0;
+                this.movementSpeed = 4;
+                this.checkpoints = [1600, 2800, 4000, 5200, 6400];
+                this.lastCheckpoint = 0;
+                this.reachedCheckpoint = false;
+                this.isAnswering = false;
+                this.character.isJumping = false;
+                this.questions = [{
+                        question: "Apa yang ada di gambar ini?",
+                        image: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='20' rx='8' ry='10' fill='%23FFF'/><path d='M12 12 C16 8 20 12 20 12' stroke='%2390EE90' fill='none' stroke-width='2'/></svg>",
+                        options: ["Telur", "Ulat", "Kupu-kupu"],
+                        correct: 0
+                    },
+                    {
+                        question: "Siapa aku? Aku baru saja keluar dari telur!",
+                        image: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="8" y="14" width="16" height="4" fill="%238BC34A"/><circle cx="24" cy="16" r="2" fill="%238BC34A"/><circle cx="8" cy="16" r="2" fill="%238BC34A"/></svg>',
+                        options: ["Kupu-kupu", "Ulat", "Kecoa"],
+                        correct: 1
+                    },
+                    {
+                        question: "Apa yang terjadi pada ulat ini setelah banyak makan?",
+                        image: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="4" y="12" width="24" height="8" fill="%238BC34A"/><circle cx="28" cy="16" r="4" fill="%23FF9800"/><circle cx="4" cy="16" r="4" fill="%23FF9800"/><rect x="8" y="10" width="4" height="2" fill="%23FF5722"/><rect x="20" y="10" width="4" height="2" fill="%23FF5722"/></svg>',
+                        options: ["Berubah menjadi kepompong", "Tetap menjadi ulat", "Langsung menjadi kupu-kupu"],
+                        correct: 0
+                    },
+                    {
+                        question: "Apa yang terjadi didalam kepompong?",
+                        image: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M8 8 L24 8 L24 24 L8 24 Z" fill="%23795548"/><path d="M12 8 L20 8 L20 24 L12 24" fill="%23A1887F"/></svg>',
+                        options: ["Ulat tidur", "Kupu-kupu makan", "Ulat berubah menjadi kupu-kupu"],
+                        correct: 2
+                    },
+                    {
+                        question: "Manakah urutan metamorfosis kupu-kupu yang benar?",
+                        image: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 32"><g transform="translate(0,0)"><ellipse cx="10" cy="20" rx="5" ry="6" fill="%23FFF"/></g><g transform="translate(25,0)"><rect x="5" y="17" width="10" height="3" fill="%238BC34A"/></g><g transform="translate(50,0)"><path d="M5 8 L15 8 L15 24 L5 24 Z" fill="%23795548"/></g><g transform="translate(75,0)"><path d="M5 4 L15 16 L5 28" fill="%23FF9800"/></g></svg>',
+                        options: ["Telur → Ulat → Kepompong → Kupu-kupu", "Telur → Kepompong → Ulat → Kupu-kupu",
+                            "Ulat → Telur → Kepompong → Kupu-kupu"
+                        ],
+                        correct: 0
+                    }
+                ];
+                this.tutorialShown = {
+                    egg: false,
+                    'small-caterpillar': false,
+                    'large-caterpillar': false,
+                    pupa: false,
+                    'small-butterfly': false,
+                    butterfly: false
+                };
+                document.addEventListener('keyup', (e) => {
+                    if (e.key === 'ArrowRight') {
+                        this.character.stopMoving();
+                    }
+                    // Jangan reset ketinggian kupu-kupu saat lepas tombol atas/bawah
+                });
+                // Tambahkan flag untuk tracking soal yang sudah dijawab
+                this.answeredQuestions = new Set();
+
+                this.hasUsedArrow = false;
+                this.obstacles = [];
+                this.setupObstacles();
+                this.setupWindEffects();
+                this.setupGame();
+                this.setupControls();
+
+                // Fix ground width
+                const ground = document.getElementById('ground');
+                ground.style.width = '8000px'; // Extend ground length to cover full game world
+
+                this.gameLoop();
+                this.updateLives();
+            }
+
+            setupWindEffects() {
+                const windEffects = document.getElementById('windEffects');
+                // Clear any existing wind effects
+                windEffects.innerHTML = '';
+
+                // Create wind effects for each rock platform
+                this.obstacles.forEach(obstacle => {
+                    if (obstacle.type === 'rock') {
+                        // Create container for this wind platform
+                        const windPlatform = document.createElement('div');
+                        windPlatform.className = 'wind-platform';
+                        windPlatform.style.left = `${obstacle.x}px`;
+
+                        // Create wind area visual indicator
+                        const windArea = document.createElement('div');
+                        windArea.className = 'wind-area';
+                        windPlatform.appendChild(windArea);
+
+                        // Create multiple wind particles with variety
+                        const particleCount = 20; // Increased particle count
+                        for (let i = 0; i < particleCount; i++) {
+                            const particle = document.createElement('div');
+                            
+                            // Determine type of particle for variety
+                            if (i % 5 === 0) {
+                                particle.className = 'wind-particle large';
+                            } else if (i % 7 === 0) {
+                                particle.className = 'wind-particle swirl';
+                            } else {
+                                particle.className = 'wind-particle';
+                            }
+                            
+                            // Randomly position particles horizontally within the platform
+                            particle.style.left = `${Math.random() * 80}px`;
+                            
+                            // Stagger the animation
+                            particle.style.animationDelay = `${Math.random() * 3}s`;
+                            
+                            windPlatform.appendChild(particle);
+                        }
+
+                        windEffects.appendChild(windPlatform);
+
+                        // Add active class to rock
+                        const rockElement = document.querySelector(`.rock[data-id="${obstacle.id}"]`);
+                        if (rockElement) {
+                            rockElement.classList.add('wind-active');
+                        }
+
+                        // Store reference to the wind effect element
+                        obstacle.windElement = windPlatform;
+                    }
+                });
+
+                // Make sure wind effects container moves with the world
+                this.worldElement.appendChild(windEffects);
+            }
+
+            setupObstacles() {
+                // Hapus obstacles yang ada
+                this.obstacles.forEach(obstacle => {
+                    if (obstacle.element) {
+                        obstacle.element.remove();
+                    }
+                });
+                this.obstacles = [];
+
+                // Setup obstacle berdasarkan level dan checkpoint
+                // Level 1 (Telur) - Lumpur (antara start dan checkpoint pertama di 1600)
+                [800, 1200].forEach(x => {
+                    const mud = document.createElement('div');
+                    mud.className = 'mud';
+                    mud.style.left = `${x}px`;
+                    mud.style.bottom = '25vh';
+                    mud.style.width = '128px';
+                    mud.style.height = '32px';
+                    mud.style.background = '#8B4513';
+                    mud.style.opacity = '0.5';
+                    mud.style.position = 'absolute';
+                    this.worldElement.appendChild(mud);
+                    this.obstacles.push({
+                        element: mud,
+                        x,
+                        type: 'mud',
+                        level: 1
+                    });
+                });
+
+                // Level 2-3 (Ulat) - Batu (antara checkpoint 1 di 1600 dan checkpoint 3 di 4000)
+                [2000, 2400, 3200, 3600].forEach(x => {
+                    const platform = document.createElement('div');
+                    platform.className = 'platform';
+                    platform.style.left = `${x}px`;
+                    platform.style.bottom = '53vh';  // Platform lebih tinggi dari tanah
+                    this.worldElement.appendChild(platform);
+
+                    const rock = document.createElement('div');
+                    rock.className = 'rock';
+                    rock.style.left = `${x}px`;
+                    this.worldElement.appendChild(rock);
+                    this.obstacles.push({
+                        element: rock,
+                        x,
+                        type: 'rock',
+                        level: [2, 3]
+                    });
+                });
+
+                // Level 4 (Kepompong) - Lumpur (antara checkpoint 3 di 4000 dan checkpoint 4 di 5200)
+                [4400, 4800].forEach(x => {
+                    const mud = document.createElement('div');
+                    mud.className = 'mud';
+                    mud.style.left = `${x}px`;
+                    mud.style.bottom = '25vh';
+                    mud.style.width = '128px';
+                    mud.style.height = '32px';
+                    mud.style.background = '#8B4513';
+                    mud.style.opacity = '0.5';
+                    mud.style.position = 'absolute';
+                    this.worldElement.appendChild(mud);
+                    this.obstacles.push({
+                        element: mud,
+                        x,
+                        type: 'mud',
+                        level: 4
+                    });
+                });
+
+                // Level 5 (Kupu-kupu) - Awan (setelah checkpoint 4 di 5200)
+                [5600, 6000].forEach((x, i) => {
+                    const cloud = document.createElement('div');
+                    cloud.className = 'cloud background-cloud'; // Add background-cloud class
+                    cloud.style.left = `${x}px`;
+                    cloud.style.bottom = `${45 + (i * 15)}vh`; // Awan pada ketinggian berbeda
+                    this.worldElement.appendChild(cloud);
+                    
+                    // We don't add these to obstacles array since they're just decorative
+                });
+            }
+
+
+            setupGame() {
+                // Clear existing bushes
+                const existingBushes = document.querySelectorAll('.bush');
+                existingBushes.forEach(bush => bush.remove());
+
+                // Add new bushes at checkpoints
+                this.checkpoints.forEach(x => {
+                    const bush = document.createElement('div');
+                    bush.className = 'bush';
+                    bush.style.left = `${x}px`;
+                    this.worldElement.appendChild(bush);
+                });
+
+                // Ensure character starts as egg
+                this.character.state = 'egg';
+                this.character.element.className = 'egg';
+
+                document.getElementById('restartButton').addEventListener('click', () => {
+                    this.resetGame();
+                    document.getElementById('gameOver').style.display = 'none';
+                });
+
+                document.getElementById('playAgainButton').addEventListener('click', () => {
+                    this.resetGame();
+                    document.getElementById('victoryScreen').style.display = 'none';
+                });
+            }
+
+            setupControls() {
+                const controlText = document.getElementById('controlText');
+                const controlKeys = document.getElementById('controlKeys');
+
+                document.addEventListener('keydown', (e) => {
+                    if (this.isAnswering || this.gameComplete) return;
+
+                    if (!this.hasUsedArrow && (e.key === 'ArrowRight' || e.key === 'ArrowUp')) {
+                        this.hasUsedArrow = true;
+                        document.getElementById('controls').style.display = 'none';
+                    }
+
+                    switch (e.key) {
+                        case 'ArrowRight':
+                            // Allow movement if not colliding or if jumping
+                            if (!this.isColliding || this.character.yPosition > 30) {
+                                this.character.startMoving();
+                            }
+                            break;
+                        case 'ArrowUp':
+                            if (this.character.state === 'egg' && !this.character.hasLanded) {
+                                this.character.isFalling = true;
+                            } else if (this.character.state === 'small-caterpillar' ||
+                                this.character.state === 'large-caterpillar') {
+                                this.character.jump();
+                            }
+                            // Removed butterfly fly-up control
+                            break;
+                        case 'ArrowDown':
+                            // Removed butterfly fly-down control
+                            break;
+                    }
+                });
+
+                document.addEventListener('keyup', (e) => {
+                    if (e.key === 'ArrowRight') {
+                        this.character.stopMoving();
+                    }
+                });
+            }
+
+            updateControlsDisplay() {
+                const controlText = document.getElementById('controlText');
+                const controlKeys = document.getElementById('controlKeys');
+
+                switch (this.character.state) {
+                    case 'egg':
+                        controlText.textContent = 'Gunakan tombol panah kanan (→) untuk bergerak';
+                        controlKeys.innerHTML = '<div class="arrow-key">→</div>';
+                        break;
+                    case 'small-caterpillar':
+                    case 'large-caterpillar':
+                        controlText.textContent =
+                            'Gunakan panah kanan (→) untuk bergerak dan panah atas (↑) untuk melompat';
+                        controlKeys.innerHTML = `
+                            <div class="arrow-key">↑</div>
+                            <div class="arrow-key">→</div>
+                        `;
+                        this.character.canJump = true;
+                        break;
+                    case 'pupa':
+                        controlText.textContent = 'Gunakan tombol panah kanan (→) untuk bergerak';
+                        controlKeys.innerHTML = '<div class="arrow-key">→</div>';
+                        break;
+                    case 'small-butterfly':
+                    case 'butterfly':
+                        // Updated control text to show only right arrow for butterfly
+                        controlText.textContent = 'Gunakan panah kanan (→) untuk terbang';
+                        controlKeys.innerHTML = `<div class="arrow-key">→</div>`;
+                        break;
+                }
+            }
+
+            updateLives() {
+                const livesContainer = document.getElementById('lives');
+                livesContainer.innerHTML = '';
+                for (let i = 0; i < this.lives; i++) {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart';
+                    livesContainer.appendChild(heart);
+                }
+            }
+
+            gameLoop() {
+                this.character.update();
+
+                if (this.character.isMoving && !this.isAnswering && !this.gameComplete) {
+                    this.worldPosition -= this.movementSpeed;
+                    this.worldElement.style.left = `${this.worldPosition}px`;
+                    this.character.updatePosition(this.worldPosition);
+
+                    this.checkObstacleCollisions();
+                    this.checkBushCollisions(); // Memisahkan logika pengecekan bush
+                }
+
+                requestAnimationFrame(() => this.gameLoop());
+            }
+
+            checkBushCollisions() {
+                if (this.isAnswering) return;
+
+                const currentPosition = -this.worldPosition + 100;
+
+                this.checkpoints.forEach((checkpoint, index) => {
+                    if (Math.abs(currentPosition - checkpoint) < 20 &&
+                        index === this.level - 1 &&
+                        !this.reachedCheckpoint &&
+                        !this.answeredQuestions.has(index)) {
+
+                        // Force karakter untuk berhenti
+                        this.character.stopMoving();
+                        this.isAnswering = true;
+                        this.reachedCheckpoint = true;
+
+                        // Mengatur posisi karakter tepat di bush
+                        this.worldPosition = -(checkpoint - 100);
+                        this.worldElement.style.left = `${this.worldPosition}px`;
+
+                        // Behavior untuk semua karakter (termasuk kupu-kupu)
+                        // Tidak perlu menurunkan kupu-kupu, biarkan di posisi terbangnya
+                        this.showQuestion();
+                    }
+                });
+            }
+
+            checkObstacleCollisions() {
+                if (this.isAnswering) return;
+
+                const characterRect = {
+                    left: -this.worldPosition + 100,
+                    right: -this.worldPosition + 196,
+                    top: this.character.yPosition,
+                    bottom: this.character.yPosition + 96
+                };
+
+                this.isColliding = false;
+
+                if (this.movementSpeed !== 4) {
+                    this.movementSpeed = 4;
+                }
+
+                this.obstacles.forEach(obstacle => {
+                    const isCurrentLevel = Array.isArray(obstacle.level) ?
+                        obstacle.level.includes(this.level) :
+                        obstacle.level === this.level;
+
+                    if (!isCurrentLevel) return;
+
+                    let obstacleRect = {
+                        left: obstacle.x,
+                        right: obstacle.x + (obstacle.type === 'mud' ? 128 : 64),
+                        top: 25,
+                        bottom: 45
+                    };
+
+                    // Logika khusus untuk batu
+                    if (obstacle.type === 'rock') {
+                        obstacleRect = {
+                            left: obstacle.x,
+                            right: obstacle.x + 64,
+                            top: 25 + 32, // Tinggi batu + ground level
+                            bottom: 25 // Ground level
+                        };
+
+                        if (this.character.state === 'small-caterpillar' ||
+                            this.character.state === 'large-caterpillar') {
+
+                            // Check apakah karakter berada di atas batu
+                            if (characterRect.bottom >= obstacleRect.top &&
+                                characterRect.top <= obstacleRect.top &&
+                                characterRect.right > obstacleRect.left &&
+                                characterRect.left < obstacleRect.right) {
+
+                                // Karakter mendarat di atas batu
+                                this.character.currentPlatform = {
+                                    top: obstacleRect.top,
+                                    left: obstacleRect.left,
+                                    right: obstacleRect.right
+                                };
+                                this.character.yPosition = obstacleRect.top;
+                                this.character.velocity = 0;
+                                this.character.canJump = true;
+                                this.character.isJumping = false;
+                            }
+                            // Check untuk collision dari samping hanya jika tidak di atas batu
+                            else if (this.character.yPosition < obstacleRect.top &&
+                                this.checkCollision(characterRect, obstacleRect)) {
+                                this.isColliding = true;
+                                this.character.stopMoving();
+                                this.worldPosition += 5;
+                                this.worldElement.style.left = `${this.worldPosition}px`;
+                            }
+                        }
+                    }
+                    // Logika untuk mud obstacle
+                    else if (obstacle.type === 'mud' && this.checkCollision(characterRect, obstacleRect)) {
+                        if (this.character.yPosition <= 25.5) {
+                            this.movementSpeed = 1;
+                        }
+                    }
+                    // Removed cloud collision logic since clouds are now just background
+                });
+
+                // Check if character has fallen off the platform
+                if (this.character.currentPlatform) {
+                    const isStillOnPlatform = characterRect.right > this.character.currentPlatform.left &&
+                        characterRect.left < this.character.currentPlatform.right;
+
+                    if (!isStillOnPlatform) {
+                        this.character.currentPlatform = null;
+                        this.character.isJumping = true;
+                    }
+                }
+
+                // Always update character position
+                this.character.updatePosition(this.worldPosition);
+            }
+
+            checkCollision(rect1, rect2) {
+                return (
+                    rect1.left < rect2.right &&
+                    rect1.right > rect2.left &&
+                    rect1.top < rect2.bottom &&
+                    rect1.bottom > rect2.top
+                );
+            }
+
+            showDamageEffect() {
+                const damageEffect = document.getElementById('damageEffect');
+                damageEffect.style.display = 'block';
+
+                // Add shake effect to game container
+                const gameContainer = document.getElementById('gameContainer');
+                gameContainer.classList.add('shake');
+
+                // Remove effects after animation
+                setTimeout(() => {
+                    damageEffect.style.display = 'none';
+                    gameContainer.classList.remove('shake');
+                }, 500);
+            }
+
+            showQuestion() {
+                const questionBox = document.getElementById('questionBox');
+                const questionElement = document.getElementById('question');
+                const optionsElement = document.getElementById('options');
+
+                const currentQuestion = this.questions[this.level - 1];
+                questionElement.textContent = currentQuestion.question;
+
+                // Clear previous options
+                optionsElement.innerHTML = '';
+
+                // Add image if present
+                if (currentQuestion.image) {
+                    const imageDiv = document.createElement('div');
+                    imageDiv.className = 'question-image';
+                    imageDiv.style.backgroundImage = `url(${currentQuestion.image})`;
+                    questionBox.insertBefore(imageDiv, optionsElement);
+                }
+
+                // Add options
+                currentQuestion.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'option';
+                    button.textContent = option;
+                    button.onclick = () => this.checkAnswer(index);
+                    optionsElement.appendChild(button);
+                });
+
+                questionBox.style.display = 'block';
+            }
+
+            checkAnswer(selectedIndex) {
+                const currentQuestion = this.questions[this.level - 1];
+
+                if (selectedIndex === currentQuestion.correct) {
+                    this.lastCheckpoint = this.checkpoints[this.level - 1];
+                    this.answeredQuestions.add(this.level - 1);
+                    this.level++;
+                    document.getElementById('level').textContent = this.level;
+                    this.character.evolve();
+
+                    // Reset tutorial untuk stage baru
+                    this.hasUsedArrow = false;
+                    document.getElementById('controls').style.display = 'block';
+                    this.updateControlsDisplay();
+
+                    this.reachedCheckpoint = false;
+                    this.isAnswering = false; // Pastikan isAnswering di-reset
+
+                    if (this.level > this.checkpoints.length) {
+                        this.victory();
+                        return;
+                    }
+                } else {
+                    // Show damage effect
+                    this.showDamageEffect();
+
+                    // Existing wrong answer logic
+                    this.lives--;
+                    this.updateLives();
+
+                    if (this.lives <= 0) {
+                        this.gameOver();
+                        return;
+                    }
+
+                    const previousCheckpoint = this.level > 1 ? this.checkpoints[this.level - 2] : 0;
+                    this.worldPosition = -previousCheckpoint;
+                    this.worldElement.style.left = `${this.worldPosition}px`;
+                    this.character.updatePosition(this.worldPosition);
+
+                    this.reachedCheckpoint = false;
+                    this.isAnswering = false;
+
+                    this.hasUsedArrow = false;
+                    document.getElementById('controls').style.display = 'block';
+                    this.updateControlsDisplay();
+                }
+
+                // Remove image if exists
+                const imageDiv = document.querySelector('.question-image');
+                if (imageDiv) {
+                    imageDiv.remove();
+                }
+
+                // Hide question box and continue game
+                document.getElementById('questionBox').style.display = 'none';
+            }
+
+            gameOver() {
+                document.getElementById('gameOver').style.display = 'block';
+            }
+
+            victory() {
+                const questionBox = document.getElementById('questionBox');
+                questionBox.style.display = 'none';
+                const imageDiv = document.querySelector('.question-image');
+                if (imageDiv) {
+                    imageDiv.remove();
+                }
+                this.isAnswering = false;
+
+                // Disable controls after victory
+                this.gameComplete = true;
+
+                // Hide the controls after victory
+                document.getElementById('controls').style.display = 'none';
+
+                // Add butterfly victory animation
+                const butterfly = this.character.element;
+                gsap.to(butterfly, {
+                    rotation: 5,
+                    y: -20,
+                    duration: 0.5,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: "sine.inOut"
+                });
+
+                // Make butterfly move in circular pattern
+                gsap.to(butterfly, {
+                    x: "+=50",
+                    duration: 2,
+                    repeat: -1,
+                    yoyo: true,
+                    ease: "sine.inOut"
+                });
+
+                document.getElementById('victoryScreen').style.display = 'block';
+
+                // Create animated butterflies in the background
+                const victoryButterfly = document.getElementById('victoryButterfly');
+
+                // Animation for victory screen
+                gsap.from('#victoryTitle', {
+                    y: -100,
+                    opacity: 0,
+                    duration: 1,
+                    ease: "bounce.out"
+                });
+
+                gsap.to('#victoryButterfly', {
+                    rotation: 360,
+                    duration: 10,
+                    repeat: -1,
+                    ease: "none"
+                });
+            }
+
+            resetGame() {
+                // Reset basic game state
+                this.level = 1;
+                document.getElementById('level').textContent = this.level;
+                this.lives = 3;
+                this.updateLives();
+                this.worldPosition = 0;
+                this.worldElement.style.left = '0px';
+                this.lastCheckpoint = 0;
+
+                // Reset character state and position
+                this.character.element.style.transform = 'none'; // Reset rotasi bawaan dari kupu2
+                this.character.state = 'egg';
+                this.character.element.className = 'egg';
+                this.character.yPosition = 150;
+                this.character.xPosition = 100;
+
+                // Reset physics state
+                this.character.velocity = 0;
+                this.character.isFalling = true;
+                this.character.hasLanded = false;
+                this.character.isJumping = false;
+                this.character.canJump = false;
+                this.character.currentPlatform = null;
+                this.character.fixedButterflyHeight = 30; // Reset fixed butterfly height
+                this.character.isFlying = false;
+
+                // Update position
+                this.character.updatePosition(0);
+                this.character.element.style.bottom = `${this.character.yPosition}vh`;
+
+                // Reset game flags
+                this.gameComplete = false;
+                this.isColliding = false;
+                this.isAnswering = false;
+                this.reachedCheckpoint = false;
+
+                // Kill any active GSAP animations
+                gsap.killTweensOf(this.character.element);
+
+                // Reset tutorial states
+                this.tutorialShown = {
+                    egg: false,
+                    'small-caterpillar': false,
+                    'large-caterpillar': false,
+                    pupa: false,
+                    'small-butterfly': false,
+                    butterfly: false
+                };
+
+                // Reset answered questions
+                this.answeredQuestions.clear();
+
+                // Reset UI elements
+                this.updateControlsDisplay();
+                this.setupObstacles();
+
+                const questionBox = document.getElementById('questionBox');
+                questionBox.style.display = 'none';
+                const imageDiv = document.querySelector('.question-image');
+                if (imageDiv) {
+                    imageDiv.remove();
+                }
+
+                // Reset controls visibility
+                this.hasUsedArrow = false;
+                document.getElementById('controls').style.display = 'block';
+            }
+        }
+
+        // Start the game
+        window.onload = function() {
+            new Game();
+        };
+    </script>
+</body>
+
+</html>
